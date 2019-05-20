@@ -54,7 +54,17 @@ int main(int argc, char * argv[]){
 
     read(sock_fd, &board_size, sizeof(board_size));
     printf("board_size %d\n", board_size);
-
+    
+	/*Initializes SDL*/
+	if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
+		 printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
+		 exit(-1);
+	}
+	if(TTF_Init()==-1) {
+			printf("TTF_Init: %s\n", TTF_GetError());
+			exit(2);
+	}
+	
     create_board_window(300, 300, board_size);
 
     board = malloc(sizeof(board_place)* board_size * board_size);
@@ -116,6 +126,7 @@ void * checkForPlays( void* args){
 
 	int* aux = args;
 	int sock_fd = *aux;
+
 
 	/*While the game isn't over*/
 	while (!done){
