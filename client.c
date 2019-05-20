@@ -69,7 +69,7 @@ int main(int argc, char * argv[]){
 
     board = malloc(sizeof(board_place)* board_size * board_size);
 
-    read(sock_fd, board, sizeof(board_place) * board_size * board_size);
+    //read(sock_fd, board, sizeof(board_place) * board_size * board_size);
 	
 	//threads here
 	pthread_create(&SDL_thread, NULL, checkForPlays, (void*) &sock_fd);
@@ -119,7 +119,7 @@ int main(int argc, char * argv[]){
 }
 
 
-void * checkForPlays( void* args){
+void* checkForPlays( void* args){
 
 	SDL_Event event;
 	int p;

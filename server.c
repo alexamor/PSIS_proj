@@ -184,6 +184,7 @@ void* process_events(void* args){
 			}
 		}
 	}
+	
 
 	close_board_windows();
 
