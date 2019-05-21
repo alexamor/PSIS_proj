@@ -77,11 +77,14 @@ void init_board(int dim){
 }
 
 /*Receives the coordinates of a card to be picked and, depending of the card state (DOWN, UP or LOCKED), updates it and returns suitable information*/
-play_response board_play(int x, int y){
-
+play_response board_play(int p){
+	int x, y;
 	/*Initialization of variables*/
 	play_response resp;
 	resp.code =10;
+
+	x = get_x(p);
+	y = get_y(p);
 
 	/*If the place chosen is already filled - chosen or already correct*/
 	if(strcmp(get_board_place_str(x, y), "")==0){
@@ -174,7 +177,28 @@ void clear_memory(){
 }
 
 void update_board_place(int board_x, int board_y, int player, int code){
+	
 	board[linear_conv(board_x, board_y)].player = player;
 	board[linear_conv(board_x, board_y)].player = player;
+	board[linear_conv(board_x, board_y)].state = code;
+
 }
 
+
+board_place* get_board(){
+	return board;
+}
+
+int get_x(int p){
+	return (int) p/dim_board;
+}
+
+int get_y(int p){
+	return (int) p%dim_board;
+}
+
+board_place get_board_place(int p){
+
+	return board[p];
+
+}

@@ -39,8 +39,12 @@ typedef struct color{
 int linear_conv(int i, int j);
 char * get_board_place_str(int i, int j);
 void init_board(int dim);
-play_response board_play (int x, int y);
+play_response board_play (int p);
 void get_colors(color color_players[]);
 color get_single_color(int i);
 void clear_memory();
 void update_board_place(int board_x, int board_y, int player, int code);
+board_place* get_board();
+int get_x(int p);
+int get_y(int p);
+board_place get_board_place(int p);
