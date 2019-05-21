@@ -52,41 +52,10 @@ int main(int argc, char* argv[]){
 	/*Creates thread to deal with processes*/
 	//pthread_create(&SDL_thread, NULL, process_events, NULL);
 
-	/*Create socket*/
-	sock_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock_fd == -1){
-		perror("socket: ");
-	    exit(-1);
-	}
+	
+	pthread_create(&get_players, NULL, accept_players, NULL);
 
-	local_addr.sin_family = AF_INET;
-	local_addr.sin_port= htons(PORT);
-	local_addr.sin_addr.s_addr= INADDR_ANY;
-
-	/*Bind socket to local address*/
-	if( bind(sock_fd, (struct sockaddr *)&local_addr, sizeof(local_addr)) == -1) {
-	    perror("bind");
-	    exit(-1);
-	}
-
-	printf("Socket created and binded \n");
-	/*Start listening on the socket*/
-	if(listen(sock_fd, 5) == -1){
-		perror("listen");
-		exit(-1);
-	}
-
-	for(i = 0; i < MAX_PLAYERS; i++){
-		players_fd[i] = INACTIVE;
-	}
-
-	printf("Waiting for players...\n");
-
-	pthread_create(&(get_players), NULL, accept_players, NULL);
-
-
-
-
+	pthread_join(get_players, NULL);
 
 	//pthread_join(SDL_thread, NULL);
 
@@ -259,6 +228,38 @@ void* process_players(void* args){
 
 void* accept_players(){
 	pthread_t players_thread[MAX_PLAYERS];
+	int i = 0;
+
+	/*Create socket*/
+	sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock_fd == -1){
+		perror("socket: ");
+	    exit(-1);
+	}
+
+	local_addr.sin_family = AF_INET;
+	local_addr.sin_port= htons(PORT);
+	local_addr.sin_addr.s_addr= INADDR_ANY;
+
+	/*Bind socket to local address*/
+	if( bind(sock_fd, (struct sockaddr *)&local_addr, sizeof(local_addr)) == -1) {
+	    perror("bind");
+	    exit(-1);
+	}
+
+	printf("Socket created and binded \n");
+	/*Start listening on the socket*/
+	if(listen(sock_fd, 5) == -1){
+		perror("listen");
+		exit(-1);
+	}
+
+	for(i = 0; i < MAX_PLAYERS; i++){
+		players_fd[i] = INACTIVE;
+	}
+
+	printf("Waiting for players...\n");
+
 
 	//Player 1
 	players_fd[0] = accept(sock_fd, NULL, NULL);
