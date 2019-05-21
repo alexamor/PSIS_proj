@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include "board_library.h" 
 #include "UI_library.h"
@@ -28,6 +29,7 @@ int main(int argc, char * argv[]){
 	int sock_fd;
 	int red_cards = 0;
 	int toTurnCards[2][2];
+	char prev_card[3];
 
 	board_place * board;
 
@@ -103,33 +105,42 @@ int main(int argc, char * argv[]){
 				case 1:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
 					write_card(read_play.x, read_play.y, read_play.place.v, 200, 200, 200);
+					toTurnCards[0][0] = read_play.x;
+					toTurnCards[0][1] = read_play.y;
+					strcpy(prev_card, read_play.place.v);
 					break;
 				//wrong card up - letters red
 				case 2:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
 					write_card(read_play.x, read_play.y, read_play.place.v, 255, 0, 0);
+					write_card(toTurnCards[0][0], toTurnCards[0][1], prev_card, 255, 0, 0);
 					red_cards++;
-					toTurnCards[red_cards][0] = read_play.x;
-					toTurnCards[red_cards][1] = read_play.y;
+					toTurnCards[1][0] = read_play.x;
+					toTurnCards[1][1] = read_play.y;
 					break;
 				//locked card - letters black
 				case 3:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
-					write_card(read_play.x, read_play.y, read_play.place.v, 0, 0, 0);
+					write_card(read_play.x, read_play.y, prev_card, 0, 0, 0);
+					write_card(toTurnCards[0][0], toTurnCards[0][1], prev_card, 0, 0, 0);
 					break;
 				//win - board completed
 				case 4:
+					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
+					write_card(read_play.x, read_play.y, prev_card, 0, 0, 0);
+					write_card(toTurnCards[0][0], toTurnCards[0][1], prev_card, 0, 0, 0);
 					done = true;
 					break;	
 
 			}
 
-			if(red_cards == 2){
+			if(red_cards == 1){
 				sleep(2);
 				paint_card(toTurnCards[0][0], toTurnCards[0][1], 255, 255, 255);
 				paint_card(toTurnCards[1][0], toTurnCards[1][1], 255, 255, 255);
 				red_cards = 0;
 			}
+
 
 		}
 	}

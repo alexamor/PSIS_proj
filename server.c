@@ -110,7 +110,7 @@ void* process_players(void* args){
     			aux_play.x = resp.play1[0];
     			aux_play.y = resp.play1[1];
     			aux_play.place = place;
-    			write(players_fd[id], &aux_play, sizeof(play));
+    			//write(players_fd[id], &aux_play, sizeof(play));
 				update_board_place(resp.play2[0], resp.play2[1], id, 4);
     			place = get_board_place(p);
     			aux_play.x = resp.play2[0];
@@ -127,7 +127,7 @@ void* process_players(void* args){
     			aux_play.x = resp.play1[0];
     			aux_play.y = resp.play1[1];
     			aux_play.place = place;
-    			write(players_fd[id], &aux_play, sizeof(play));
+    			//write(players_fd[id], &aux_play, sizeof(play));
 				//paint_card(resp.play2[0], resp.play2[1] , color_players[0].r, color_players[0].g, color_players[0].b);
 				//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 0, 0, 0);
 				update_board_place(resp.play2[0], resp.play2[1], id, 3);
@@ -147,7 +147,7 @@ void* process_players(void* args){
     			aux_play.x = resp.play1[0];
     			aux_play.y = resp.play1[1];
     			aux_play.place = place;
-    			write(players_fd[id], &aux_play, sizeof(play));
+    			//write(players_fd[id], &aux_play, sizeof(play));
 				//paint_card(resp.play2[0], resp.play2[1] , color_players[0].r, color_players[0].g, color_players[0].b);
 				//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
 				update_board_place(resp.play2[0], resp.play2[1], id, 2);
