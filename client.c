@@ -15,6 +15,7 @@
 #define PORT 3000
 
 bool done = false;
+int board_size;
 
 void* checkForPlays(void* args);
 
@@ -52,7 +53,6 @@ int main(int argc, char * argv[]){
 
   	printf("1 - client connected\n");
 
-    int board_size;
 
     read(sock_fd, &board_size, sizeof(board_size));
     printf("board_size %d\n", board_size);
@@ -69,56 +69,68 @@ int main(int argc, char * argv[]){
 	
     create_board_window(300, 300, board_size);
 
-    board = malloc(sizeof(board_place)* board_size * board_size);
+    board = (board_place *) malloc(sizeof(board_place)* board_size * board_size);
+
+    printf("Board allocated\n");
 
     //read(sock_fd, board, sizeof(board_place) * board_size * board_size);
+
+    printf("Board read\n");
 	
 	//threads here
 	pthread_create(&SDL_thread, NULL, checkForPlays, (void*) &sock_fd);
 
+	printf("thread checkForPlays created\n");
+
 
 	while(!done){
-		read(sock_fd, &read_play, sizeof(read_play));
+		if(read(sock_fd, &read_play, sizeof(read_play)) != 0){
 
-		player_color = get_single_color(read_play.place.player);
+			printf("Play read\n");
 
-		//renders the card given the type of play
-		switch (read_play.place.state) {
-			//turn card down
-			case 0:
-				paint_card(read_play.x, read_play.y , 255, 255, 255);
-				//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
-				break;
-			//turn up and letters grey
-			case 1:
-				paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
-				write_card(read_play.x, read_play.y, read_play.place.v, 200, 200, 200);
-				break;
-			//wrong card up - letters red
-			case 2:
-				paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
-				write_card(read_play.x, read_play.y, read_play.place.v, 255, 0, 0);
-				red_cards++;
-				toTurnCards[red_cards][0] = read_play.x;
-				toTurnCards[red_cards][1] = read_play.y;
-				break;
-			//locked card - letters black
-			case 3:
-				paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
-				write_card(read_play.x, read_play.y, read_play.place.v, 0, 0, 0);
-				break;
-			//win - board completed
-			case 4:
-				done = true;
-				break;	
+			player_color = get_single_color(read_play.place.player);
 
-		}
+			printf("Card: %d %d   State: %d\n ", read_play.x, read_play.y, read_play.place.state );
 
-		if(red_cards == 2){
-			sleep(2);
-			paint_card(toTurnCards[0][0], toTurnCards[0][1], 255, 255, 255);
-			paint_card(toTurnCards[1][0], toTurnCards[1][1], 255, 255, 255);
-			red_cards = 0;
+			//renders the card given the type of play
+			switch (read_play.place.state) {
+				//turn card down
+				case 0:
+					paint_card(read_play.x, read_play.y , 255, 255, 255);
+					//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
+					break;
+				//turn up and letters grey
+				case 1:
+					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
+					write_card(read_play.x, read_play.y, read_play.place.v, 200, 200, 200);
+					break;
+				//wrong card up - letters red
+				case 2:
+					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
+					write_card(read_play.x, read_play.y, read_play.place.v, 255, 0, 0);
+					red_cards++;
+					toTurnCards[red_cards][0] = read_play.x;
+					toTurnCards[red_cards][1] = read_play.y;
+					break;
+				//locked card - letters black
+				case 3:
+					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
+					write_card(read_play.x, read_play.y, read_play.place.v, 0, 0, 0);
+					break;
+				//win - board completed
+				case 4:
+					done = true;
+					break;	
+
+			}
+
+			if(red_cards == 2){
+				sleep(2);
+				paint_card(toTurnCards[0][0], toTurnCards[0][1], 255, 255, 255);
+				paint_card(toTurnCards[1][0], toTurnCards[1][1], 255, 255, 255);
+				red_cards = 0;
+			}
+
 		}
 	}
 
@@ -158,7 +170,9 @@ void* checkForPlays( void* args){
 
 					printf("click (%d %d) -> (%d %d)\n", event.button.x, event.button.y, board_x, board_y);
 
-					p = linear_conv(board_x, board_y);
+					p = board_x + board_size * board_y;
+
+					printf("p %d\n", p);
 
 					//Send play to server
 					write(sock_fd, &p, sizeof(p));

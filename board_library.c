@@ -179,7 +179,6 @@ void clear_memory(){
 void update_board_place(int board_x, int board_y, int player, int code){
 	
 	board[linear_conv(board_x, board_y)].player = player;
-	board[linear_conv(board_x, board_y)].player = player;
 	board[linear_conv(board_x, board_y)].state = code;
 
 }
@@ -190,11 +189,15 @@ board_place* get_board(){
 }
 
 int get_x(int p){
-	return (int) p/dim_board;
+	int x = (int) p%dim_board;
+	//printf("x : %d\n", x);
+	return x;
 }
 
 int get_y(int p){
-	return (int) p%dim_board;
+	int y = p/dim_board;
+	//printf("y : %d\n", y);
+	return y;
 }
 
 board_place get_board_place(int p){
