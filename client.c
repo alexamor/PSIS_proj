@@ -15,8 +15,9 @@
 
 #define PORT 3000
 
-bool done = false;
+bool volatile done = false;
 int board_size;
+board_place * board;
 
 void* checkForPlays(void* args);
 
@@ -31,7 +32,7 @@ int main(int argc, char * argv[]){
 	int toTurnCards[2][2];
 	char prev_card[3];
 
-	board_place * board;
+	
 
 	if (argc <2){
 	    printf("second argument should be server address\n");
@@ -75,7 +76,7 @@ int main(int argc, char * argv[]){
 
     printf("Board allocated\n");
 
-    //read(sock_fd, board, sizeof(board_place) * board_size * board_size);
+    read(sock_fd, board, sizeof(board_place) * board_size * board_size);
 
     printf("Board read\n");
 	
@@ -85,8 +86,8 @@ int main(int argc, char * argv[]){
 	printf("thread checkForPlays created\n");
 
 
-	while(!done){
-		if(read(sock_fd, &read_play, sizeof(read_play)) != 0){
+	while(done == false && read(sock_fd, &read_play, sizeof(read_play)) != 0){
+		if(1){
 
 			printf("Play read\n");
 
@@ -196,4 +197,7 @@ void* checkForPlays( void* args){
 
 	printf("fim\n");
 	close_board_windows();
+	free(board);
+
+	exit(1);
 }

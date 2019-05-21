@@ -78,7 +78,7 @@ void* process_players(void* args){
 
     write(players_fd[id], &dim, sizeof(dim));
 
-    //write(players_fd[id], board, sizeof(board_place)* dim * dim);
+    write(players_fd[id], board, sizeof(board_place)* dim * dim);
 
     /*Check if player closes*/
     while(read(players_fd[id], &p, sizeof(p)) != 0){
@@ -167,7 +167,7 @@ void* process_players(void* args){
 
     }
 
-
+    close(players_fd[id]);
 
 }
 
