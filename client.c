@@ -25,6 +25,8 @@ int main(int argc, char * argv[]){
 	color player_color;
 	pthread_t SDL_thread;
 	int sock_fd;
+	int red_cards = 0;
+	int toTurnCards[2][2];
 
 	board_place * board;
 
@@ -69,7 +71,7 @@ int main(int argc, char * argv[]){
 
     board = malloc(sizeof(board_place)* board_size * board_size);
 
-    read(sock_fd, board, sizeof(board_place) * board_size * board_size);
+    //read(sock_fd, board, sizeof(board_place) * board_size * board_size);
 	
 	//threads here
 	pthread_create(&SDL_thread, NULL, checkForPlays, (void*) &sock_fd);
@@ -96,6 +98,9 @@ int main(int argc, char * argv[]){
 			case 2:
 				paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
 				write_card(read_play.x, read_play.y, read_play.place.v, 255, 0, 0);
+				red_cards++;
+				toTurnCards[red_cards][0] = read_play.x;
+				toTurnCards[red_cards][1] = read_play.y;
 				break;
 			//locked card - letters black
 			case 3:
@@ -107,6 +112,13 @@ int main(int argc, char * argv[]){
 				done = true;
 				break;	
 
+		}
+
+		if(red_cards == 2){
+			sleep(2);
+			paint_card(toTurnCards[0][0], toTurnCards[0][1], 255, 255, 255);
+			paint_card(toTurnCards[1][0], toTurnCards[1][1], 255, 255, 255);
+			red_cards = 0;
 		}
 	}
 
