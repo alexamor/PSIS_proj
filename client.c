@@ -15,7 +15,7 @@
 
 #define PORT 3000
 
-bool volatile done = false;
+bool done = false;
 int board_size;
 board_place * board;
 
@@ -23,7 +23,6 @@ void* checkForPlays(void* args);
 
 int main(int argc, char * argv[]){
 	struct sockaddr_in server_addr;
-	bool done = false;
 	play read_play;
 	color player_color;
 	pthread_t SDL_thread;
@@ -31,6 +30,7 @@ int main(int argc, char * argv[]){
 	int red_cards = 0;
 	int toTurnCards[2][2];
 	char prev_card[3];
+	int i, j;
 
 	
 
@@ -130,7 +130,13 @@ int main(int argc, char * argv[]){
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
 					write_card(read_play.x, read_play.y, prev_card, 0, 0, 0);
 					write_card(toTurnCards[0][0], toTurnCards[0][1], prev_card, 0, 0, 0);
-					done = true;
+					//done = true;
+					sleep(10);
+					for(i = 0; i < board_size; i++){
+						for(j = 0; j < board_size; j++){
+							paint_card(i, j , 255, 255, 255);
+						}
+					}
 					break;	
 
 			}
@@ -197,7 +203,4 @@ void* checkForPlays( void* args){
 
 	printf("fim\n");
 	close_board_windows();
-	free(board);
-
-	exit(1);
 }

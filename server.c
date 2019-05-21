@@ -117,6 +117,10 @@ void* process_players(void* args){
     			aux_play.y = resp.play2[1];
     			aux_play.place = place;
     			write(players_fd[id], &aux_play, sizeof(play));
+
+    			sleep(10);
+    			clear_memory();
+    			init_board(dim);
 				break;
 			// Correct 2nd play
 			case 2:
