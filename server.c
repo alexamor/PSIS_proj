@@ -92,87 +92,91 @@ void* process_players(void* args){
 
     	//printf("place %d\n", p);
 
-    	play_response resp = board_play(p, id);
+    	if(nr_active_players > 1){
 
-    	//printf("resp code %d\n", resp.code);
+	    	play_response resp = board_play(p, id);
 
-    	//renders the card given the type of play
-		switch (resp.code) {
-			// first play, only renders the card chosen
-			case 1:
-				//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-				//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 200, 200, 200);
-				update_board_place(resp.play1[0], resp.play1[1], id, 1);
-    			place = get_board_place(p);
-    			aux_play.x = resp.play1[0];
-    			aux_play.y = resp.play1[1];
-    			aux_play.place = place;
-    			broadcast_play(aux_play);
-				break;
-			//game ends
-			case 3:
-				done = 1;
-				update_board_place(resp.play1[0], resp.play1[1], id, 4);
-    			place = get_board_place(p);
-    			aux_play.x = resp.play1[0];
-    			aux_play.y = resp.play1[1];
-    			aux_play.place = place;
-    			//write(players_fd[id], &aux_play, sizeof(play));
-				update_board_place(resp.play2[0], resp.play2[1], id, 4);
-    			place = get_board_place(p);
-    			aux_play.x = resp.play2[0];
-    			aux_play.y = resp.play2[1];
-    			aux_play.place = place;
-    			broadcast_play(aux_play);
-    			sleep(10);
-    			clear_memory();
-    			init_board(dim);
-				break;
-			// Correct 2nd play
-			case 2:
-				//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-				//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 0, 0, 0);
-				update_board_place(resp.play1[0], resp.play1[1], id, 3);
-    			place = get_board_place(p);
-    			aux_play.x = resp.play1[0];
-    			aux_play.y = resp.play1[1];
-    			aux_play.place = place;
-    			//write(players_fd[id], &aux_play, sizeof(play));
-				//paint_card(resp.play2[0], resp.play2[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-				//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 0, 0, 0);
-				update_board_place(resp.play2[0], resp.play2[1], id, 3);
-				p = resp.play2[0] + resp.play2[1] * dim;
-    			place = get_board_place(p);
-    			aux_play.x = resp.play2[0];
-    			aux_play.y = resp.play2[1];
-    			aux_play.place = place;
-    			broadcast_play(aux_play);
-				break;
-			// incorrect 2nd play, renders cards for 2 seconds and then paint white again
-			case -2:
-				//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-				//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 255, 0, 0);
-				update_board_place(resp.play1[0], resp.play1[1], id, 2);
-    			place = get_board_place(p);
-    			aux_play.x = resp.play1[0];
-    			aux_play.y = resp.play1[1];
-    			aux_play.place = place;
-    			//write(players_fd[id], &aux_play, sizeof(play));
-				//paint_card(resp.play2[0], resp.play2[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-				//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
-				update_board_place(resp.play2[0], resp.play2[1], id, 2);
-				p = resp.play2[0] + resp.play2[1] * dim;
-    			place = get_board_place(p);
-    			aux_play.x = resp.play2[0];
-    			aux_play.y = resp.play2[1];
-    			aux_play.place = place;
-    			broadcast_play(aux_play);
-				sleep(2);
-				//paint_card(resp.play1[0], resp.play1[1] , 255, 255, 255);
-				update_board_place(resp.play1[0], resp.play1[1], id, 0);
-				update_board_place(resp.play2[0], resp.play2[1], id, 0);
-				break;
-		}
+	    	//printf("resp code %d\n", resp.code);
+
+	    	//renders the card given the type of play
+			switch (resp.code) {
+				// first play, only renders the card chosen
+				case 1:
+					//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
+					//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 200, 200, 200);
+					update_board_place(resp.play1[0], resp.play1[1], id, 1);
+	    			place = get_board_place(p);
+	    			aux_play.x = resp.play1[0];
+	    			aux_play.y = resp.play1[1];
+	    			aux_play.place = place;
+	    			broadcast_play(aux_play);
+					break;
+				//game ends
+				case 3:
+					done = 1;
+					update_board_place(resp.play1[0], resp.play1[1], id, 4);
+	    			place = get_board_place(p);
+	    			aux_play.x = resp.play1[0];
+	    			aux_play.y = resp.play1[1];
+	    			aux_play.place = place;
+	    			//write(players_fd[id], &aux_play, sizeof(play));
+					update_board_place(resp.play2[0], resp.play2[1], id, 4);
+	    			place = get_board_place(p);
+	    			aux_play.x = resp.play2[0];
+	    			aux_play.y = resp.play2[1];
+	    			aux_play.place = place;
+	    			broadcast_play(aux_play);
+	    			sleep(10);
+	    			clear_memory();
+	    			init_board(dim);
+					break;
+				// Correct 2nd play
+				case 2:
+					//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
+					//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 0, 0, 0);
+					update_board_place(resp.play1[0], resp.play1[1], id, 3);
+	    			place = get_board_place(p);
+	    			aux_play.x = resp.play1[0];
+	    			aux_play.y = resp.play1[1];
+	    			aux_play.place = place;
+	    			//write(players_fd[id], &aux_play, sizeof(play));
+					//paint_card(resp.play2[0], resp.play2[1] , color_players[0].r, color_players[0].g, color_players[0].b);
+					//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 0, 0, 0);
+					update_board_place(resp.play2[0], resp.play2[1], id, 3);
+					p = resp.play2[0] + resp.play2[1] * dim;
+	    			place = get_board_place(p);
+	    			aux_play.x = resp.play2[0];
+	    			aux_play.y = resp.play2[1];
+	    			aux_play.place = place;
+	    			broadcast_play(aux_play);
+					break;
+				// incorrect 2nd play, renders cards for 2 seconds and then paint white again
+				case -2:
+					//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
+					//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 255, 0, 0);
+					update_board_place(resp.play1[0], resp.play1[1], id, 2);
+	    			place = get_board_place(p);
+	    			aux_play.x = resp.play1[0];
+	    			aux_play.y = resp.play1[1];
+	    			aux_play.place = place;
+	    			//write(players_fd[id], &aux_play, sizeof(play));
+					//paint_card(resp.play2[0], resp.play2[1] , color_players[0].r, color_players[0].g, color_players[0].b);
+					//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
+					update_board_place(resp.play2[0], resp.play2[1], id, 2);
+					p = resp.play2[0] + resp.play2[1] * dim;
+	    			place = get_board_place(p);
+	    			aux_play.x = resp.play2[0];
+	    			aux_play.y = resp.play2[1];
+	    			aux_play.place = place;
+	    			broadcast_play(aux_play);
+					sleep(2);
+					//paint_card(resp.play1[0], resp.play1[1] , 255, 255, 255);
+					update_board_place(resp.play1[0], resp.play1[1], id, 0);
+					update_board_place(resp.play2[0], resp.play2[1], id, 0);
+					break;
+			}
+    	}
+
 
 
     }
@@ -221,7 +225,7 @@ void* accept_players(){
 
 	while(1){
 
-		if(nr_active_players < MAX_PLAYERS){
+		if(nr_active_players < (MAX_PLAYERS - 1)){
 
 			for(int i = 0; i < MAX_PLAYERS; i++){
 				if(players_fd[i] == INACTIVE){
