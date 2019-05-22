@@ -25,12 +25,15 @@ struct sockaddr_in local_addr;
 int dim;
 pthread_t get_players;
 pthread_t players_thread[MAX_PLAYERS];
+int card_count[MAX_PLAYERS] = {0};
 
 //void* process_events();
 void* process_players(void* args);
 void* accept_players();
 void* exit_game();
 void broadcast_play(play aux_play);
+int who_won();
+void broadcast_play_except_one(play aux_play, int exception);
 
 
 int main(int argc, char* argv[]){
@@ -76,7 +79,7 @@ int main(int argc, char* argv[]){
 void* process_players(void* args){
 	int* aux_id = args;
 	int id = *aux_id;
-	int p;
+	int p, winner;
 	board_place* board = get_board();
 	board_place place;
 	play aux_play;
@@ -125,7 +128,16 @@ void* process_players(void* args){
 	    			aux_play.x = resp.play2[0];
 	    			aux_play.y = resp.play2[1];
 	    			aux_play.place = place;
-	    			broadcast_play(aux_play);
+
+	    			//players receive generic end game message
+	    			winner = who_won();
+
+	    			broadcast_play_except_one(aux_play, winner);
+
+	    			//winner receives winning message
+	    			aux_play.place.state = 5;
+	    			write(players_fd[winner], &aux_play, sizeof(play));
+
 	    			sleep(10);
 	    			clear_memory();
 	    			init_board(dim);
@@ -148,6 +160,7 @@ void* process_players(void* args){
 	    			aux_play.x = resp.play2[0];
 	    			aux_play.y = resp.play2[1];
 	    			aux_play.place = place;
+	    			card_count[id]++;
 	    			broadcast_play(aux_play);
 					break;
 				// incorrect 2nd play, renders cards for 2 seconds and then paint white again
@@ -283,6 +296,32 @@ void broadcast_play(play aux_play){
 
 	for(i = 0; i < MAX_PLAYERS; i++){
 		if(players_fd[i] != INACTIVE)
+			write(players_fd[i], &aux_play, sizeof(play));
+	}
+}
+
+int who_won(){
+	int max = 0, winner;
+
+	for(int i = 0; i < MAX_PLAYERS; i++){
+		if(max < card_count[i])
+		{
+			max = card_count[i];
+			winner = i;
+		}
+
+		//Zero card count for next game
+		card_count[i] = 0;
+	}
+
+	return winner;
+}
+
+void broadcast_play_except_one(play aux_play, int exception){
+	int i = 0;
+
+	for(i = 0; i < MAX_PLAYERS; i++){
+		if((players_fd[i] != INACTIVE) && (i != exception))
 			write(players_fd[i], &aux_play, sizeof(play));
 	}
 }

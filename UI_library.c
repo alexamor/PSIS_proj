@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <stdbool.h>
 
 int screen_width;
 int screen_height;
@@ -103,4 +104,36 @@ void close_board_windows(){
 	if (window) {
 		SDL_DestroyWindow(window);
 	}
+}
+
+void end_prompt(int  dim, bool winner){
+	SDL_Rect rect;
+
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = col_width * dim;
+	rect.h = row_height * dim;
+	SDL_Surface * surface;
+
+
+	TTF_Font * font = TTF_OpenFont("arial.ttf", row_height * 2);
+
+	int text_x = dim/2 * col_width;
+	int text_y = dim/2 * row_height;
+
+	SDL_Color color = { 255, 255, 255 };
+
+	if(winner)
+ 		surface = TTF_RenderText_Solid(font, "You won!", color);
+ 	else
+ 		surface = TTF_RenderText_Solid(font, "Game ended", color);
+
+	SDL_Texture* Background_Tx = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_FreeSurface(surface); /* we got the texture now -> free surface */
+
+
+	SDL_RenderCopy(renderer, Background_Tx, NULL, &rect);
+	SDL_RenderPresent(renderer);
+
+
 }

@@ -11,7 +11,8 @@ typedef struct board_place{
   //1 - up - first play (grey)
   //2 - up - wrong (red)
   //3 - locked (black)
-  //4 - win
+  //4 - end of game
+  //5 - winner
 } board_place;
 
 typedef struct play{

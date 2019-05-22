@@ -131,10 +131,18 @@ int main(int argc, char * argv[]){
 					write_card(toTurnCards[read_play.place.player][0][0], toTurnCards[read_play.place.player][0][1], prev_card[read_play.place.player], 0, 0, 0);
 					break;
 				//win - board completed
+				case 5:
 				case 4:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
 					write_card(read_play.x, read_play.y, prev_card[read_play.place.player], 0, 0, 0);
 					write_card(toTurnCards[read_play.place.player][0][0], toTurnCards[read_play.place.player][0][1], prev_card[read_play.place.player], 0, 0, 0);
+					
+					//Print end game prompt
+					if(read_play.place.state == 4)
+						end_prompt(board_size, false);
+					else
+						end_prompt(board_size, true);
+
 					//done = true;
 					sleep(10);
 					for(i = 0; i < board_size; i++){
