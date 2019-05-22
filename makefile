@@ -4,13 +4,16 @@ CFLAGS = -Wall
 LIBS = -pthread -lSDL2 -lSDL2_ttf
 
 # All targets rule
-all: server client
+all: server client bot
 
 # Individual program rules
 server : server.o board_library.o UI_library.o
 	$(CC) -o $@ $^ $(LIBS)
 
 client : client.o board_library.o UI_library.o
+	$(CC) -o $@ $^ $(LIBS)
+
+bot : bot.o board_library.o UI_library.o
 	$(CC) -o $@ $^ $(LIBS)
 
 # Source file rules
