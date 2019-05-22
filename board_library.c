@@ -7,6 +7,7 @@ int dim_board;
 board_place * board;
 int play1[2];
 int n_corrects;
+play_response resp[MAX_PLAYERS];
 
 int linear_conv(int i, int j){
   return j*dim_board+i;
@@ -77,31 +78,33 @@ void init_board(int dim){
 }
 
 /*Receives the coordinates of a card to be picked and, depending of the card state (DOWN, UP or LOCKED), updates it and returns suitable information*/
-play_response board_play(int p){
+play_response board_play(int p, int id){
 	int x, y;
 	/*Initialization of variables*/
-	play_response resp;
-	resp.code =10;
+	
+	resp[id].code = 10;
 
 	x = get_x(p);
 	y = get_y(p);
 
+	board_place aux_place = get_board_place(p);
+
 	/*If the place chosen is already filled - chosen or already correct*/
-	if(strcmp(get_board_place_str(x, y), "")==0){
-		printf("FILLED\n");
-		resp.code =0;
+	if(aux_place.state == 3){
+		//printf("FILLED\n");
+		resp[id].code =0;
 	}else{
 		/*Checks if it's the first card chosen*/
 		if(play1[0]== -1){
 			printf("FIRST\n");
-			resp.code =1;
+			resp[id].code =1;
 
 			/*Saves first card chosen*/
 			play1[0]=x;
 			play1[1]=y;
-			resp.play1[0] = play1[0];
-			resp.play1[1] = play1[1];
-			strcpy(resp.str_play1, get_board_place_str(x, y));
+			resp[id].play1[0] = play1[0];
+			resp[id].play1[1] = play1[1];
+			strcpy(resp[id].str_play1, get_board_place_str(x, y));
 		}
 		/*If it's the second card chosen*/
 		else{
@@ -111,45 +114,45 @@ play_response board_play(int p){
 
 			/*Checks if the card chosen is the same as the first one chosen*/
 			if ((play1[0]==x) && (play1[1]==y)){
-				resp.code =0;
-				printf("FILLED\n");
+				resp[id].code =0;
+				//printf("FILLED\n");
 			}
 			/*Compares both plays*/
 			else{
-				resp.play1[0]= play1[0];
-				resp.play1[1]= play1[1];
-				strcpy(resp.str_play1, first_str);
-				resp.play2[0]= x;
-				resp.play2[1]= y;
-				strcpy(resp.str_play2, secnd_str);
+				resp[id].play1[0]= play1[0];
+				resp[id].play1[1]= play1[1];
+				strcpy(resp[id].str_play1, first_str);
+				resp[id].play2[0]= x;
+				resp[id].play2[1]= y;
+				strcpy(resp[id].str_play2, secnd_str);
 
 				/*Compares strings of each play - if strings match*/
 				if (strcmp(first_str, secnd_str) == 0){
 					printf("CORRECT!!!\n");
 
 
-					strcpy(first_str, "");
-					strcpy(secnd_str, "");
+					//strcpy(first_str, "");
+					//strcpy(secnd_str, "");
 
 					/*Increments number of correct plays*/
 					n_corrects +=2;
 					/*Checks if the game as ended and send message END or CORRECT PLAY*/
 					if (n_corrects == dim_board* dim_board)
-						resp.code =3;
+						resp[id].code =3;
 					else
-						resp.code =2;
+						resp[id].code =2;
 				}
 				/*Strings don't match*/
 				else{
 					printf("INCORRECT");
 
-					resp.code = -2;
+					resp[id].code = -2;
 				}
 				play1[0]= -1;
 			}
 		}
 	}
-	return resp;
+	return resp[id];
 }
 
 void get_colors(color color_players[]){

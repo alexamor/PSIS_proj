@@ -20,6 +20,7 @@ int board_size;
 board_place * board;
 
 void* checkForPlays(void* args);
+void draw_board();
 
 int main(int argc, char * argv[]){
 	struct sockaddr_in server_addr;
@@ -79,6 +80,10 @@ int main(int argc, char * argv[]){
     read(sock_fd, board, sizeof(board_place) * board_size * board_size);
 
     printf("Board read\n");
+
+    draw_board();
+
+    printf("Board draw\n");
 	
 	//threads here
 	pthread_create(&SDL_thread, NULL, checkForPlays, (void*) &sock_fd);
@@ -204,3 +209,46 @@ void* checkForPlays( void* args){
 	printf("fim\n");
 	close_board_windows();
 }
+
+void draw_board(){
+	int x, y;
+	color player_color;
+
+	for(int i = 0; i < (board_size * board_size); i++){
+
+		printf("i %d\n", i);
+
+		x = get_x(i);
+		y = get_y(i);
+
+		player_color = get_single_color(board[i].player);
+
+		//printf("Card: %d %d   State: %d\n ", , read_play.y, read_play.place.state );
+
+		//renders the card given the type of play
+		switch (board[i].state) {
+			//turn card down
+			case 0:
+				paint_card(x, y, 255, 255, 255);
+				//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 255, 0, 0);
+				break;
+			//turn up and letters grey
+			case 1:
+				paint_card(x, y, player_color.r, player_color.g, player_color.b);
+				write_card(x, y, board[i].v, 200, 200, 200);
+				break;
+			//wrong card up - letters red
+			case 2:
+				paint_card(x, y, player_color.r, player_color.g, player_color.b);
+				write_card(x, y, board[i].v, 255, 0, 0);
+				break;
+			//locked card - letters black
+			case 3:
+				paint_card(x, y, player_color.r, player_color.g, player_color.b);
+				write_card(x, y, board[i].v, 0, 0, 0);
+				break;	
+
+		}
+	}
+}
+

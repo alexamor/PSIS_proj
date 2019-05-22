@@ -30,6 +30,7 @@ pthread_t players_thread[MAX_PLAYERS];
 void* process_players(void* args);
 void* accept_players();
 void* exit_game();
+void broadcast_play(play aux_play);
 
 
 int main(int argc, char* argv[]){
@@ -80,7 +81,7 @@ void* process_players(void* args){
 	board_place place;
 	play aux_play;
 
-	printf("dim: %d\n", dim);
+	printf("dim: %d  player %d\n", dim, id);
 
     write(players_fd[id], &dim, sizeof(dim));
 
@@ -89,11 +90,11 @@ void* process_players(void* args){
     /*Check if player closes*/
     while(read(players_fd[id], &p, sizeof(p)) != 0){
 
-    	printf("place %d\n", p);
+    	//printf("place %d\n", p);
 
-    	play_response resp = board_play(p);
+    	play_response resp = board_play(p, id);
 
-    	printf("resp code %d\n", resp.code);
+    	//printf("resp code %d\n", resp.code);
 
     	//renders the card given the type of play
 		switch (resp.code) {
@@ -106,7 +107,7 @@ void* process_players(void* args){
     			aux_play.x = resp.play1[0];
     			aux_play.y = resp.play1[1];
     			aux_play.place = place;
-    			write(players_fd[id], &aux_play, sizeof(play));
+    			broadcast_play(aux_play);
 				break;
 			//game ends
 			case 3:
@@ -122,8 +123,7 @@ void* process_players(void* args){
     			aux_play.x = resp.play2[0];
     			aux_play.y = resp.play2[1];
     			aux_play.place = place;
-    			write(players_fd[id], &aux_play, sizeof(play));
-
+    			broadcast_play(aux_play);
     			sleep(10);
     			clear_memory();
     			init_board(dim);
@@ -146,7 +146,7 @@ void* process_players(void* args){
     			aux_play.x = resp.play2[0];
     			aux_play.y = resp.play2[1];
     			aux_play.place = place;
-    			write(players_fd[id], &aux_play, sizeof(play));
+    			broadcast_play(aux_play);
 				break;
 			// incorrect 2nd play, renders cards for 2 seconds and then paint white again
 			case -2:
@@ -166,7 +166,7 @@ void* process_players(void* args){
     			aux_play.x = resp.play2[0];
     			aux_play.y = resp.play2[1];
     			aux_play.place = place;
-    			write(players_fd[id], &aux_play, sizeof(play));
+    			broadcast_play(aux_play);
 				sleep(2);
 				//paint_card(resp.play1[0], resp.play1[1] , 255, 255, 255);
 				update_board_place(resp.play1[0], resp.play1[1], id, 0);
@@ -187,7 +187,7 @@ void* process_players(void* args){
 void* accept_players(){
 	
 	int i = 0;
-	int player = 0;
+	int player = 0, aux_player;
 
 	/*Create socket*/
 	sock_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -230,17 +230,19 @@ void* accept_players(){
 				}
 			}
 
-			printf("player %d joined\n", player);
+			printf("player %d to join\n", player);
 			//Player 1	
 			players_fd[player] = accept(sock_fd, NULL, NULL);
 			if(players_fd[player] == -1){
 				printf("Error accepting connection from player 1.\n");
 				exit(-1);
 			}
-		    printf("Player 1 connected, waiting for player 2!\n");
-		    nr_active_players++;
+			aux_player = player;
 
-		    pthread_create(&players_thread[player], NULL, process_players, (void*) &player);
+		    nr_active_players++;
+		    printf("player %d joined\n", aux_player);
+
+		    pthread_create(&players_thread[aux_player], NULL, process_players, (void*) &aux_player);
 		}
 
 	}
@@ -251,17 +253,32 @@ void* accept_players(){
 
 void* exit_game(){
 
-	char c = getchar();
+	char c;
 
-	if(c == 'q'){
+	while(1){
 
-		for(int i = 0; i < MAX_PLAYERS; i++){
-			if(players_fd[i] != INACTIVE)
-				pthread_cancel(players_thread[i]);
+		c = getchar();
+
+		if(c == 'q'){
+
+			for(int i = 0; i < MAX_PLAYERS; i++){
+				if(players_fd[i] != INACTIVE)
+					pthread_cancel(players_thread[i]);
+			}
+
+			pthread_cancel(get_players);
+			//clear_memory();
+			//exit(1);
+			break;
 		}
+	}
+}
 
-		pthread_cancel(get_players);
-		//clear_memory();
-		//exit(1);
+void broadcast_play(play aux_play){
+	int i = 0;
+
+	for(i = 0; i < MAX_PLAYERS; i++){
+		if(players_fd[i] != INACTIVE)
+			write(players_fd[i], &aux_play, sizeof(play));
 	}
 }
