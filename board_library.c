@@ -5,7 +5,7 @@
 
 int dim_board;
 board_place * board;
-int play1[2];
+//int play1[2];
 int n_corrects;
 play_response resp[MAX_PLAYERS];
 
@@ -35,9 +35,11 @@ void init_board(int dim){
   /*Intializes each board_place with '\0'*/
   for( i=0; i < (dim_board*dim_board); i++){
 	board[i].v[0] = '\0';
+	board[i].state = 0;
   }
-  for( i = 0; i < MAX_PLAYERS; i++)
+  for( i = 0; i < MAX_PLAYERS; i++){
   	resp[i].play1[0] = -1;
+  }  
 
   /*Fills each board_place randomly*/
   for (char c1 = 'a' ; c1 < ('a'+dim_board); c1++){
@@ -81,6 +83,8 @@ void init_board(int dim){
 /*Receives the coordinates of a card to be picked and, depending of the card state (DOWN, UP or LOCKED), updates it and returns suitable information*/
 play_response board_play(int p, int id){
 	int x, y;
+	int play1[2];
+	play_response aux_play;
 	/*Initialization of variables*/
 	
 	resp[id].code = 10;
@@ -91,21 +95,25 @@ play_response board_play(int p, int id){
 	board_place aux_place = get_board_place(p);
 
 	/*If the place chosen is already filled - chosen or already correct*/
-	if(aux_place.state == 3){
+	if(aux_place.state == 3 && (if_card_chosen(id, x, y) == false)){
 		//printf("FILLED\n");
-		resp[id].code =0;
+		resp[id].code = 0;
+
+		aux_play = resp[id];
 	}else{
 		/*Checks if it's the first card chosen*/
-		if((resp[id].play1[0] == -1) && (if_card_chosen(id, x, y) == false)){
+		if((resp[id].play1[0] == -1) ){
 			printf("FIRST\n");
-			resp[id].code =1;
+			resp[id].code = 1;
 
 			/*Saves first card chosen*/
-			play1[0]=x;
-			play1[1]=y;
+			play1[0] = x;
+			play1[1] = y;
 			resp[id].play1[0] = play1[0];
 			resp[id].play1[1] = play1[1];
 			strcpy(resp[id].str_play1, get_board_place_str(x, y));
+
+			aux_play = resp[id];
 		}
 		/*If it's the second card chosen*/
 		else{
@@ -117,6 +125,7 @@ play_response board_play(int p, int id){
 			if ((resp[id].play1[0]==x) && (resp[id].play1[1]==y)){
 				resp[id].code =0;
 				//printf("FILLED\n");
+				aux_play = resp[id];
 			}
 			/*Compares both plays*/
 			else{
@@ -149,11 +158,14 @@ play_response board_play(int p, int id){
 
 					resp[id].code = -2;
 				}
+				aux_play = resp[id];
+
 				resp[id].play1[0]= -1;
 			}
 		}
 	}
-	return resp[id];
+
+	return aux_play;
 }
 
 void get_colors(color color_players[]){
@@ -177,7 +189,6 @@ color get_single_color( int i){
 }
 
 void clear_memory(){
-
 	free(board);
 }
 
@@ -215,7 +226,7 @@ bool if_card_chosen(int id, int x, int y){
 	int i;
 	for(i = 0; i < MAX_PLAYERS; i++){
 		if(i != id){
-			if((resp[i].play1[0] == x) || (resp[i].play1[1] == y))
+			if((resp[i].play1[0] == x) && (resp[i].play1[1] == y))
 				return true;
 		}
 	}

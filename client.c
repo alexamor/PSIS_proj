@@ -29,8 +29,8 @@ int main(int argc, char * argv[]){
 	pthread_t SDL_thread;
 	int sock_fd;
 	int red_cards = 0;
-	int toTurnCards[2][2];
-	char prev_card[3];
+	int toTurnCards[MAX_PLAYERS][2][2];
+	char prev_card[MAX_PLAYERS][3];
 	int i, j;
 
 	
@@ -111,30 +111,30 @@ int main(int argc, char * argv[]){
 				case 1:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
 					write_card(read_play.x, read_play.y, read_play.place.v, 200, 200, 200);
-					toTurnCards[0][0] = read_play.x;
-					toTurnCards[0][1] = read_play.y;
-					strcpy(prev_card, read_play.place.v);
+					toTurnCards[read_play.place.player][0][0] = read_play.x;
+					toTurnCards[read_play.place.player][0][1] = read_play.y;
+					strcpy(prev_card[read_play.place.player], read_play.place.v);
 					break;
 				//wrong card up - letters red
 				case 2:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
 					write_card(read_play.x, read_play.y, read_play.place.v, 255, 0, 0);
-					write_card(toTurnCards[0][0], toTurnCards[0][1], prev_card, 255, 0, 0);
+					write_card(toTurnCards[read_play.place.player][0][0], toTurnCards[read_play.place.player][0][1], prev_card[read_play.place.player], 255, 0, 0);
 					red_cards++;
-					toTurnCards[1][0] = read_play.x;
-					toTurnCards[1][1] = read_play.y;
+					toTurnCards[read_play.place.player][1][0] = read_play.x;
+					toTurnCards[read_play.place.player][1][1] = read_play.y;
 					break;
 				//locked card - letters black
 				case 3:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
-					write_card(read_play.x, read_play.y, prev_card, 0, 0, 0);
-					write_card(toTurnCards[0][0], toTurnCards[0][1], prev_card, 0, 0, 0);
+					write_card(read_play.x, read_play.y, prev_card[read_play.place.player], 0, 0, 0);
+					write_card(toTurnCards[read_play.place.player][0][0], toTurnCards[read_play.place.player][0][1], prev_card[read_play.place.player], 0, 0, 0);
 					break;
 				//win - board completed
 				case 4:
 					paint_card(read_play.x, read_play.y, player_color.r, player_color.g, player_color.b);
-					write_card(read_play.x, read_play.y, prev_card, 0, 0, 0);
-					write_card(toTurnCards[0][0], toTurnCards[0][1], prev_card, 0, 0, 0);
+					write_card(read_play.x, read_play.y, prev_card[read_play.place.player], 0, 0, 0);
+					write_card(toTurnCards[read_play.place.player][0][0], toTurnCards[read_play.place.player][0][1], prev_card[read_play.place.player], 0, 0, 0);
 					//done = true;
 					sleep(10);
 					for(i = 0; i < board_size; i++){
@@ -148,8 +148,8 @@ int main(int argc, char * argv[]){
 
 			if(red_cards == 1){
 				sleep(2);
-				paint_card(toTurnCards[0][0], toTurnCards[0][1], 255, 255, 255);
-				paint_card(toTurnCards[1][0], toTurnCards[1][1], 255, 255, 255);
+				paint_card(toTurnCards[read_play.place.player][0][0], toTurnCards[read_play.place.player][0][1], 255, 255, 255);
+				paint_card(toTurnCards[read_play.place.player][1][0], toTurnCards[read_play.place.player][1][1], 255, 255, 255);
 				red_cards = 0;
 			}
 
@@ -162,6 +162,8 @@ int main(int argc, char * argv[]){
   	close(sock_fd);
 
   	free(board);
+
+  	return 0;
 
 }
 
@@ -216,7 +218,7 @@ void draw_board(){
 
 	for(int i = 0; i < (board_size * board_size); i++){
 
-		printf("i %d\n", i);
+		printf("i %d  code %d\n", i, board[i].state);
 
 		x = (int) i%board_size;
 		y = (int) i/board_size; 
