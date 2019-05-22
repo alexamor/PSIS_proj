@@ -26,6 +26,8 @@ int dim;
 pthread_t get_players;
 pthread_t players_thread[MAX_PLAYERS];
 int card_count[MAX_PLAYERS] = {0};
+pthread_rwlock_t lock_active_players = PTHREAD_RWLOCK_INITIALIZER; // locks for synchronization
+pthread_rwlock_t locks_fd[MAX_PLAYERS] = PTHREAD_RWLOCK_INITIALIZER; 
 
 //void* process_events();
 void* process_players(void* args);
@@ -93,8 +95,8 @@ void* process_players(void* args){
     /*Check if player closes*/
     while(read(players_fd[id], &p, sizeof(p)) != 0){
 
-    	//printf("place %d\n", p);
-
+    	//printf("place %d\n", p;
+    	pthread_rwlock_rdlock(&lock_active_players);
     	if(nr_active_players > 1){
 
 	    	play_response resp = board_play(p, id);
@@ -105,8 +107,6 @@ void* process_players(void* args){
 			switch (resp.code) {
 				// first play, only renders the card chosen
 				case 1:
-					//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-					//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 200, 200, 200);
 					update_board_place(resp.play1[0], resp.play1[1], id, 1);
 	    			place = get_board_place(p);
 	    			aux_play.x = resp.play1[0];
@@ -144,16 +144,13 @@ void* process_players(void* args){
 					break;
 				// Correct 2nd play
 				case 2:
-					//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-					//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 0, 0, 0);
+					printf("play correct: %d %d \n",resp.play1[0], resp.play1[1] );
 					update_board_place(resp.play1[0], resp.play1[1], id, 3);
 	    			place = get_board_place(p);
 	    			aux_play.x = resp.play1[0];
 	    			aux_play.y = resp.play1[1];
 	    			aux_play.place = place;
 	    			//write(players_fd[id], &aux_play, sizeof(play));
-					//paint_card(resp.play2[0], resp.play2[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-					//write_card(resp.play2[0], resp.play2[1], resp.str_play2, 0, 0, 0);
 					update_board_place(resp.play2[0], resp.play2[1], id, 3);
 					p = resp.play2[0] + resp.play2[1] * dim;
 	    			place = get_board_place(p);
@@ -165,8 +162,6 @@ void* process_players(void* args){
 					break;
 				// incorrect 2nd play, renders cards for 2 seconds and then paint white again
 				case -2:
-					//paint_card(resp.play1[0], resp.play1[1] , color_players[0].r, color_players[0].g, color_players[0].b);
-					//write_card(resp.play1[0], resp.play1[1], resp.str_play1, 255, 0, 0);
 					update_board_place(resp.play1[0], resp.play1[1], id, 2);
 	    			place = get_board_place(p);
 	    			aux_play.x = resp.play1[0];
@@ -191,12 +186,15 @@ void* process_players(void* args){
     	}
 
 
+    	pthread_rwlock_unlock(&lock_active_players);
 
     }
 
     close(players_fd[id]);
     players_fd[id] = INACTIVE;
+    pthread_rwlock_wrlock(&lock_active_players);
     nr_active_players--;
+    pthread_rwlock_unlock(&lock_active_players);
     pthread_detach(pthread_self());
 
 }
@@ -241,10 +239,13 @@ void* accept_players(){
 		if(nr_active_players < (MAX_PLAYERS - 1)){
 
 			for(int i = 0; i < MAX_PLAYERS; i++){
+				pthread_rwlock_rdlock(&(locks_fd[i]));
 				if(players_fd[i] == INACTIVE){
 					player = i;
+					pthread_rwlock_unlock(&(locks_fd[i]));
 					break;
 				}
+				pthread_rwlock_unlock(&(locks_fd[i]));
 			}
 
 			printf("player %d to join\n", player);
@@ -256,7 +257,10 @@ void* accept_players(){
 			}
 			aux_player = player;
 
+		    pthread_rwlock_wrlock(&lock_active_players);
 		    nr_active_players++;
+		    pthread_rwlock_unlock(&lock_active_players);
+
 		    printf("player %d joined\n", aux_player);
 
 		    pthread_create(&players_thread[aux_player], NULL, process_players, (void*) &aux_player);
@@ -295,8 +299,11 @@ void broadcast_play(play aux_play){
 	int i = 0;
 
 	for(i = 0; i < MAX_PLAYERS; i++){
-		if(players_fd[i] != INACTIVE)
+		pthread_rwlock_rdlock(&(locks_fd[i]));
+		if(players_fd[i] != INACTIVE){
 			write(players_fd[i], &aux_play, sizeof(play));
+		}
+		pthread_rwlock_unlock(&(locks_fd[i]));
 	}
 }
 
@@ -321,7 +328,11 @@ void broadcast_play_except_one(play aux_play, int exception){
 	int i = 0;
 
 	for(i = 0; i < MAX_PLAYERS; i++){
-		if((players_fd[i] != INACTIVE) && (i != exception))
+		pthread_rwlock_rdlock(&(locks_fd[i]));
+		if((players_fd[i] != INACTIVE) && (i != exception)){
 			write(players_fd[i], &aux_play, sizeof(play));
+		}
+		pthread_rwlock_unlock(&(locks_fd[i]));
+
 	}
 }

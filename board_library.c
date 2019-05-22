@@ -2,12 +2,15 @@
 #include "board_library.h"
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
 int dim_board;
 board_place * board;
 //int play1[2];
 int n_corrects;
 play_response resp[MAX_PLAYERS];
+pthread_rwlock_t locks[MAX_PLAYERS] = PTHREAD_RWLOCK_INITIALIZER; // locks for synchronization
+
 
 int linear_conv(int i, int j){
   return j*dim_board+i;
@@ -87,7 +90,10 @@ play_response board_play(int p, int id){
 	play_response aux_play;
 	/*Initialization of variables*/
 	
+	//Lock to write
+	pthread_rwlock_wrlock(&(locks[id]));
 	resp[id].code = 10;
+	pthread_rwlock_unlock(&(locks[id]));
 
 	x = get_x(p);
 	y = get_y(p);
@@ -97,11 +103,15 @@ play_response board_play(int p, int id){
 	/*If the place chosen is already filled - chosen or already correct*/
 	if(aux_place.state == 3 && (if_card_chosen(id, x, y) == false)){
 		//printf("FILLED\n");
+		pthread_rwlock_wrlock(&(locks[id]));
 		resp[id].code = 0;
+		pthread_rwlock_unlock(&(locks[id]));
+
 
 		aux_play = resp[id];
 	}else{
 		/*Checks if it's the first card chosen*/
+		pthread_rwlock_wrlock(&(locks[id]));
 		if((resp[id].play1[0] == -1) ){
 			printf("FIRST\n");
 			resp[id].code = 1;
@@ -129,8 +139,8 @@ play_response board_play(int p, int id){
 			}
 			/*Compares both plays*/
 			else{
-				resp[id].play1[0]= play1[0];
-				resp[id].play1[1]= play1[1];
+				/*resp[id].play1[0]= play1[0];
+				resp[id].play1[1]= play1[1];*/
 				strcpy(resp[id].str_play1, first_str);
 				resp[id].play2[0]= x;
 				resp[id].play2[1]= y;
@@ -163,6 +173,7 @@ play_response board_play(int p, int id){
 				resp[id].play1[0]= -1;
 			}
 		}
+		pthread_rwlock_unlock(&(locks[id]));
 	}
 
 	return aux_play;
@@ -226,8 +237,12 @@ bool if_card_chosen(int id, int x, int y){
 	int i;
 	for(i = 0; i < MAX_PLAYERS; i++){
 		if(i != id){
-			if((resp[i].play1[0] == x) && (resp[i].play1[1] == y))
+			pthread_rwlock_rdlock(&(locks[i]));
+			if((resp[i].play1[0] == x) && (resp[i].play1[1] == y)){
+				pthread_rwlock_unlock(&(locks[i]));
 				return true;
+			}
+			pthread_rwlock_unlock(&(locks[i]));
 		}
 	}
 	return false;
