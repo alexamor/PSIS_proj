@@ -29,7 +29,6 @@ void init_board(int dim){
   /*Initialization of global variables*/
   dim_board= dim; /*Initializes board dimension*/
   n_corrects = 0;
-  play1[0]= -1;
   board = malloc(sizeof(board_place)* dim *dim);
 
   /*Board is an array of board_places. Each board place is an array of 3 chars ('aa\0'). */
@@ -37,6 +36,8 @@ void init_board(int dim){
   for( i=0; i < (dim_board*dim_board); i++){
 	board[i].v[0] = '\0';
   }
+  for( i = 0; i < MAX_PLAYERS; i++)
+  	resp[i].play1[0] = -1;
 
   /*Fills each board_place randomly*/
   for (char c1 = 'a' ; c1 < ('a'+dim_board); c1++){
@@ -95,7 +96,7 @@ play_response board_play(int p, int id){
 		resp[id].code =0;
 	}else{
 		/*Checks if it's the first card chosen*/
-		if(play1[0]== -1){
+		if((resp[id].play1[0] == -1) && (if_card_chosen(id, x, y) == false)){
 			printf("FIRST\n");
 			resp[id].code =1;
 
@@ -109,11 +110,11 @@ play_response board_play(int p, int id){
 		/*If it's the second card chosen*/
 		else{
 			/*Gets first card chosen*/
-			char * first_str = get_board_place_str(play1[0], play1[1]);
+			char * first_str = get_board_place_str(resp[id].play1[0], resp[id].play1[1]);
 			char * secnd_str = get_board_place_str(x, y);
 
 			/*Checks if the card chosen is the same as the first one chosen*/
-			if ((play1[0]==x) && (play1[1]==y)){
+			if ((resp[id].play1[0]==x) && (resp[id].play1[1]==y)){
 				resp[id].code =0;
 				//printf("FILLED\n");
 			}
@@ -148,7 +149,7 @@ play_response board_play(int p, int id){
 
 					resp[id].code = -2;
 				}
-				play1[0]= -1;
+				resp[id].play1[0]= -1;
 			}
 		}
 	}
@@ -176,6 +177,7 @@ color get_single_color( int i){
 }
 
 void clear_memory(){
+
 	free(board);
 }
 
@@ -207,4 +209,15 @@ board_place get_board_place(int p){
 
 	return board[p];
 
+}
+
+bool if_card_chosen(int id, int x, int y){
+	int i;
+	for(i = 0; i < MAX_PLAYERS; i++){
+		if(i != id){
+			if((resp[i].play1[0] == x) || (resp[i].play1[1] == y))
+				return true;
+		}
+	}
+	return false;
 }

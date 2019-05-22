@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define MAX_PLAYERS 8
 
@@ -48,3 +49,4 @@ board_place* get_board();
 int get_x(int p);
 int get_y(int p);
 board_place get_board_place(int p);
+bool if_card_chosen(int id, int x, int y);
