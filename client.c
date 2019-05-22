@@ -218,12 +218,13 @@ void draw_board(){
 
 		printf("i %d\n", i);
 
-		x = get_x(i);
-		y = get_y(i);
+		x = (int) i%board_size;
+		y = (int) i/board_size; 
 
 		player_color = get_single_color(board[i].player);
 
-		//printf("Card: %d %d   State: %d\n ", , read_play.y, read_play.place.state );
+
+		//printf("Card: %d %d   State: %d\n ", x , y, board[i].state );
 
 		//renders the card given the type of play
 		switch (board[i].state) {
