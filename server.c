@@ -23,15 +23,19 @@ int nr_active_players = 0;
 bool done = false;
 struct sockaddr_in local_addr;
 int dim;
+pthread_t get_players;
+pthread_t players_thread[MAX_PLAYERS];
 
 //void* process_events();
 void* process_players(void* args);
 void* accept_players();
+void* exit_game();
 
 
 int main(int argc, char* argv[]){
 	// server variables
-	pthread_t get_players;
+
+	pthread_t exit_thread;
 	
 	if(argc < 2){
 		printf("Please provide the dimension of the board as an argument.\n");
@@ -54,9 +58,11 @@ int main(int argc, char* argv[]){
 	
 	pthread_create(&get_players, NULL, accept_players, NULL);
 
+	pthread_create(&exit_thread, NULL, exit_game, NULL);	
+
 	printf("End get players\n");
 
-	pthread_join(get_players, NULL);
+	pthread_join(exit_thread, NULL);
 
 	//pthread_join(SDL_thread, NULL);
 
@@ -172,11 +178,14 @@ void* process_players(void* args){
     }
 
     close(players_fd[id]);
+    players_fd[id] = INACTIVE;
+    nr_active_players--;
+    pthread_detach(pthread_self());
 
 }
 
 void* accept_players(){
-	pthread_t players_thread[MAX_PLAYERS];
+	
 	int i = 0;
 	int player = 0;
 
@@ -210,20 +219,49 @@ void* accept_players(){
 
 	printf("Waiting for players...\n");
 
+	while(1){
 
-	//Player 1
-	players_fd[0] = accept(sock_fd, NULL, NULL);
-	if(players_fd[0] == -1){
-		printf("Error accepting connection from player 1.\n");
-		exit(-1);
+		if(nr_active_players < MAX_PLAYERS){
+
+			for(int i = 0; i < MAX_PLAYERS; i++){
+				if(players_fd[i] == INACTIVE){
+					player = i;
+					break;
+				}
+			}
+
+			printf("player %d joined\n", player);
+			//Player 1	
+			players_fd[player] = accept(sock_fd, NULL, NULL);
+			if(players_fd[player] == -1){
+				printf("Error accepting connection from player 1.\n");
+				exit(-1);
+			}
+		    printf("Player 1 connected, waiting for player 2!\n");
+		    nr_active_players++;
+
+		    pthread_create(&players_thread[player], NULL, process_players, (void*) &player);
+		}
+
 	}
-    printf("Player 1 connected, waiting for player 2!\n");
-    nr_active_players++;
-
-    pthread_create(&players_thread[0], NULL, process_players, (void*) &player);
-
-    pthread_join(players_thread[0], NULL);
+    //pthread_join(players_thread[0], NULL);	
 
 
+}
 
+void* exit_game(){
+
+	char c = getchar();
+
+	if(c == 'q'){
+
+		for(int i = 0; i < MAX_PLAYERS; i++){
+			if(players_fd[i] != INACTIVE)
+				pthread_cancel(players_thread[i]);
+		}
+
+		pthread_cancel(get_players);
+		//clear_memory();
+		//exit(1);
+	}
 }
