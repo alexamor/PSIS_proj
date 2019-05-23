@@ -8,6 +8,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "board_library.h" 
 #include "UI_library.h"
@@ -25,6 +26,8 @@ struct sockaddr_in local_addr;
 int dim;
 pthread_t get_players;
 pthread_t players_thread[MAX_PLAYERS];
+pthread_t waiter;
+double timer[MAX_PLAYERS] = {0};
 int card_count[MAX_PLAYERS] = {0};
 pthread_rwlock_t lock_active_players = PTHREAD_RWLOCK_INITIALIZER; // locks for synchronization
 pthread_rwlock_t locks_fd[MAX_PLAYERS] = PTHREAD_RWLOCK_INITIALIZER; 
@@ -36,6 +39,7 @@ void* exit_game();
 void broadcast_play(play aux_play);
 int who_won();
 void broadcast_play_except_one(play aux_play, int exception);
+void* turn_cards_white();
 
 
 int main(int argc, char* argv[]){
@@ -64,7 +68,9 @@ int main(int argc, char* argv[]){
 	
 	pthread_create(&get_players, NULL, accept_players, NULL);
 
-	pthread_create(&exit_thread, NULL, exit_game, NULL);	
+	pthread_create(&exit_thread, NULL, exit_game, NULL);
+
+	pthread_create(&waiter, NULL, turn_cards_white, NULL);	
 
 	printf("End get players\n");
 
@@ -112,6 +118,7 @@ void* process_players(void* args){
 	    			aux_play.x = resp.play1[0];
 	    			aux_play.y = resp.play1[1];
 	    			aux_play.place = place;
+	    			timer[id] = (double) 5;
 	    			broadcast_play(aux_play);
 					break;
 				//game ends
@@ -335,4 +342,39 @@ void broadcast_play_except_one(play aux_play, int exception){
 		pthread_rwlock_unlock(&(locks_fd[i]));
 
 	}
+}
+
+void* turn_cards_white(){
+
+	double now;
+	double aux_now;
+	play aux_play;
+
+	now = (double) clock()/CLOCKS_PER_SEC;
+
+
+	while(!done){
+
+		aux_now = (double) clock()/CLOCKS_PER_SEC - now;
+		now = (double) clock()/CLOCKS_PER_SEC;
+
+		//printf("time  %lf\n", aux_now);
+
+		for(int i = 0; i < MAX_PLAYERS; i++){
+			if(players_fd[i] != INACTIVE && timer[i] > 0){
+				
+				timer[i] -= aux_now;
+
+
+				if(timer[i] <= 0){
+					aux_play = last_played(i);
+
+					broadcast_play(aux_play);
+				}
+			}
+		}
+	}
+
+	pthread_detach(pthread_self());
+
 }

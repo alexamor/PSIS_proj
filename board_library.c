@@ -101,7 +101,7 @@ play_response board_play(int p, int id){
 	board_place aux_place = get_board_place(p);
 
 	/*If the place chosen is already filled - chosen or already correct*/
-	if(aux_place.state == 3 && (if_card_chosen(id, x, y) == false)){
+	if(aux_place.state == 3 || aux_place.state == 1 ){
 		//printf("FILLED\n");
 		pthread_rwlock_wrlock(&(locks[id]));
 		resp[id].code = 0;
@@ -233,17 +233,39 @@ board_place get_board_place(int p){
 
 }
 
-bool if_card_chosen(int id, int x, int y){
+bool if_card_chosen(int x, int y){
 	int i;
 	for(i = 0; i < MAX_PLAYERS; i++){
-		if(i != id){
-			pthread_rwlock_rdlock(&(locks[i]));
-			if((resp[i].play1[0] == x) && (resp[i].play1[1] == y)){
-				pthread_rwlock_unlock(&(locks[i]));
-				return true;
-			}
+		
+		pthread_rwlock_rdlock(&(locks[i]));
+		if((resp[i].play1[0] == x) && (resp[i].play1[1] == y)){
 			pthread_rwlock_unlock(&(locks[i]));
+			return true;
 		}
+		pthread_rwlock_unlock(&(locks[i]));
+		
 	}
 	return false;
+}
+
+play last_played(int id){
+	play aux_play;
+	int aux_p;
+	board_place aux_place;
+
+
+	aux_p = linear_conv(resp[id].play1[0], resp[id].play1[1]);
+
+
+	board[aux_p].state = 0;
+
+
+	aux_place = get_board_place(aux_p);
+	aux_play.place = aux_place;
+	aux_play.x = resp[id].play1[0];
+	aux_play.y = resp[id].play1[1];
+
+	resp[id].play1[0] = -1;
+
+	return aux_play;
 }

@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
+#include "UI_library.h"
 
 int screen_width;
 int screen_height;
@@ -126,7 +127,7 @@ void end_prompt(int  dim, bool winner){
 	if(winner)
  		surface = TTF_RenderText_Solid(font, "You won!", color);
  	else
- 		surface = TTF_RenderText_Solid(font, "Game ended", color);
+ 		surface = TTF_RenderText_Solid(font, "Game over", color);
 
 	SDL_Texture* Background_Tx = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface); /* we got the texture now -> free surface */
