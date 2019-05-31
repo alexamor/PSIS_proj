@@ -50,7 +50,6 @@ int linear_conv(int i, int j);
 char * get_board_place_str(int i, int j);
 void init_board(int dim);
 play_response board_play (int p, int id);
-void get_colors(color color_players[]);
 color get_single_color(int i);
 void clear_memory();
 void update_board_place(int board_x, int board_y, int player, int code);

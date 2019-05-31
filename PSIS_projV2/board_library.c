@@ -180,16 +180,7 @@ play_response board_play(int p, int id){
 	return aux_play;
 }
 
-//Depois rever isto para listas
-void get_colors(color color_players[]){
-	int i;
-
-	for (i = 0; i < MAX_PLAYERS; i++){
-		color_players[i] = get_single_color(i); 
-	}
-
-}
-
+/*Returns color of the player given by argument*/
 color get_single_color( int i){
 
 	color color_players;
@@ -201,10 +192,12 @@ color get_single_color( int i){
 	return color_players;
 }
 
+/*Frees memory*/
 void clear_memory(){
 	free(board);
 }
 
+/*Updates state and player of the card*/
 void update_board_place(int board_x, int board_y, int player, int code){
 	
 	board[linear_conv(board_x, board_y)].player = player;
@@ -212,31 +205,36 @@ void update_board_place(int board_x, int board_y, int player, int code){
 
 }
 
-
+/*Returns the board pointer.*/
 board_place* get_board(){
 	return board;
 }
 
+/*Returns coordinate x given the index of the array*/
 int get_x(int p){
 	int x = (int) p%dim_board;
 	//printf("x : %d\n", x);
 	return x;
 }
 
+/*Returns coordinate y given the index of the array*/
 int get_y(int p){
 	int y = p/dim_board;
 	//printf("y : %d\n", y);
 	return y;
 }
 
+/*Returns coordinate y given the index of the array*/
 board_place get_board_place(int p){
 
 	return board[p];
 
 }
 
+/*Checks if the card has already been chosen*/
 bool if_card_chosen(int x, int y){
 	play_node *aux;
+
 
 	for(aux = head->next; aux!= NULL; aux = aux->next){
 		
@@ -251,6 +249,7 @@ bool if_card_chosen(int x, int y){
 	return false;
 }
 
+/*When the timer reachers 5 seconds, resets the play and updates the state of the card to turn it white*/
 play last_played(int id){
 	play aux_play;
 	int aux_p;
@@ -259,10 +258,10 @@ play last_played(int id){
 
 	aux = get_play_node(id);
 
-
+	/*Gets first play*/
 	aux_p = linear_conv(aux->resp.play1[0], aux->resp.play1[1]);
 
-
+	/*Updates state to turn it white again*/
 	board[aux_p].state = 0;
 
 
@@ -271,11 +270,13 @@ play last_played(int id){
 	aux_play.x = aux->resp.play1[0];
 	aux_play.y = aux->resp.play1[1];
 
+	/*Resets 1st play*/
 	aux->resp.play1[0] = -1;
 
 	return aux_play;
 }
 
+/*Initializes list of players*/
 void init_head(){
 	head = malloc(sizeof(play_node));
 	head->id = -1;
@@ -298,6 +299,7 @@ play_node* add_play(int id){
 	return new;
 }
 
+/*Removes player from list*/
 void remove_play(int id){
 
 	play_node *aux, *removed;
@@ -312,6 +314,7 @@ void remove_play(int id){
 	}
 }
 
+/*Returns player from list given its id*/
 play_node* get_play_node(int id){
 
 	play_node *aux;
@@ -325,6 +328,7 @@ play_node* get_play_node(int id){
 	return NULL;
 }
 
+/*frees list*/
 void clear_plays(){
 	play_node * aux, *aux2;
 	

@@ -31,7 +31,6 @@ void* checkForPlays(void* args);
 void draw_board();
 void init_card_head();
 card_node* add_cards(int id);
-void remove_cards(int id);
 card_node* get_card_node(int id);
 void clear_cards();
 
@@ -190,7 +189,7 @@ int main(int argc, char * argv[]){
 
 }
 
-
+/*Receives clicks on windows and sends plays to the server*/
 void* checkForPlays( void* args){
 
 	SDL_Event event;
@@ -235,6 +234,7 @@ void* checkForPlays( void* args){
 	close_board_windows();
 }
 
+/*Draws the initial state of the board*/
 void draw_board(){
 	int x, y;
 	color player_color;
@@ -278,13 +278,14 @@ void draw_board(){
 	}
 }
 
+/*Initializes list of card nodes*/
 void init_card_head(){
 	head = malloc(sizeof(card_node));
 	head->id = -1;
 	head->next = NULL;
 }
 
-//Feito com empty head, a adição é feita sempre após esta
+/*Adds a new card node to the list when a player joins the game and makes its first play*/
 card_node* add_cards(int id){
 
 	card_node* new;
@@ -298,20 +299,7 @@ card_node* add_cards(int id){
 	return new;
 }
 
-void remove_cards(int id){
-
-	card_node *aux, *removed;
-
-	for(aux = head; aux!= NULL; aux = aux->next){
-		if(aux->next->id == id){
-			removed = aux->next;
-			aux->next = aux->next->next;
-			free(removed);
-			break;
-		}
-	}
-}
-
+/*Returns node given the id of the player*/
 card_node* get_card_node(int id){
 
 	card_node *aux;
@@ -328,6 +316,7 @@ card_node* get_card_node(int id){
 	return aux;
 }
 
+/*Frees memory of the list*/
 void clear_cards(){
 	card_node * aux, *aux2;
 

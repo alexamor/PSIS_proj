@@ -112,6 +112,7 @@ int main(int argc, char * argv[]){
 }
 
 
+/*Generates a random play and sends it to the server*/
 void* checkForPlays(){
 
 	int p;
@@ -135,6 +136,7 @@ void* checkForPlays(){
 	//close_board_windows();
 }
 
+/*Exits the game if someone sends the letter 'q' via the terminal*/
 void* exit_game(){
 
 	char c;

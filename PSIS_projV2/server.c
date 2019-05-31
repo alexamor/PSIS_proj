@@ -28,20 +28,14 @@ typedef struct player_node{
 #define INACTIVE -2
 
 
-//color color_players[MAX_PLAYERS];
 int sock_fd;
-//int players_fd[MAX_PLAYERS];
 int nr_active_players = 0;
 bool done = false;
 struct sockaddr_in local_addr;
 int dim;
 pthread_t get_players;
-//pthread_t players_thread[MAX_PLAYERS];
 pthread_t waiter;
-//double timer[MAX_PLAYERS] = {0};
-//int card_count[MAX_PLAYERS] = {0};
 pthread_rwlock_t lock_active_players = PTHREAD_RWLOCK_INITIALIZER; // locks for synchronization
-//pthread_rwlock_t locks_fd[MAX_PLAYERS] = PTHREAD_RWLOCK_INITIALIZER;
 player_node* head; 
 
 //void* process_events();
@@ -107,7 +101,7 @@ int main(int argc, char* argv[]){
 	//clear_players();
 }
 
-
+/*Receives every play from each player*/
 void* process_players(void* args){
 	int* aux_id = args;
 	int id = *aux_id;
@@ -121,8 +115,10 @@ void* process_players(void* args){
 
 	printf("dim: %d  player %d\n", dim, id);
 
+	/*Sends dimension of the board to the player*/
     write(aux->players_fd, &dim, sizeof(dim));
 
+    /*Sends the board to the player*/
     write(aux->players_fd, board, sizeof(board_place)* dim * dim);
 
     /*Check if player closes*/
@@ -225,6 +221,7 @@ void* process_players(void* args){
 
     }
 
+    /*Closes the socket, removes the play and player from the lists and decrements the nr of active players*/
     close(aux->players_fd);
     aux->players_fd = INACTIVE;
     remove_play(id);
@@ -236,6 +233,7 @@ void* process_players(void* args){
 
 }
 
+/*Receives connection from other players*/
 void* accept_players(){
 	int player = 0, aux_player;
 	player_node *auxI, *aux, *aux2;
@@ -247,6 +245,7 @@ void* accept_players(){
 	    exit(-1);
 	}
 
+	/*Sets local address*/
 	local_addr.sin_family = AF_INET;
 	local_addr.sin_port= htons(PORT);
 	local_addr.sin_addr.s_addr= INADDR_ANY;
@@ -305,6 +304,8 @@ void* accept_players(){
 
 }
 
+
+/*Terminates active threads*/
 void* exit_game(){
 
 	char c;
@@ -328,6 +329,7 @@ void* exit_game(){
 	}
 }
 
+/*Sends play to every plare*/
 void broadcast_play(play aux_play){
 	player_node *aux;
 
@@ -339,6 +341,7 @@ void broadcast_play(play aux_play){
 	}
 }
 
+/*Verifies who won the game*/
 int who_won(){
 	int max = 0, winner;
 	player_node *aux;
@@ -357,6 +360,7 @@ int who_won(){
 	return winner;
 }
 
+/*Sends play to every player except one (case where we have to send a different play to the winner)*/
 void broadcast_play_except_one(play aux_play, int exception){
 	player_node *aux;
 
@@ -370,6 +374,7 @@ void broadcast_play_except_one(play aux_play, int exception){
 	}
 }
 
+/*Thread that checks if 5 seconds passed after the first play of the player. If it happens, the card is turned white. */
 void* turn_cards_white(){
 
 	double now;
@@ -406,13 +411,14 @@ void* turn_cards_white(){
 
 }
 
+/*Initializes list of players*/
 void init_player_head(){
 	head = malloc(sizeof(player_node));
 	head->id = -1;
 	head->next = NULL;
 }
 
-//Feito com empty head, a adição é feita sempre após esta
+/*Adds a player to the list of players*/
 player_node* add_player(int id){
 
 	player_node* new;
@@ -431,6 +437,7 @@ player_node* add_player(int id){
 	return new;
 }
 
+/*Removes player from the list of players*/
 void remove_player(int id){
 
 	player_node *aux, *removed;
@@ -445,6 +452,7 @@ void remove_player(int id){
 	}
 }
 
+/*Returns player given its id*/
 player_node* get_player_node(int id){
 
 	player_node *aux;
@@ -458,6 +466,7 @@ player_node* get_player_node(int id){
 	return NULL;
 }
 
+/*Frees list*/
 void clear_players(){
 	player_node * aux, *aux2;
 
